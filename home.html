@@ -5,53 +5,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PP DREAM BUSINESS</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f1f4f9;margin:0;padding:15px;color:#222}
-header{background:#172554;color:white;padding:20px;border-radius:12px;text-align:center}
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#f1f4f9;margin:0;padding:12px;color:#222}
+header{background:#172554;color:white;padding:20px;border-radius:14px;text-align:center}
 .card{background:white;padding:15px;margin:12px 0;border-radius:12px;box-shadow:0 2px 8px #ddd}
-input,button{width:100%;padding:12px;margin:6px 0;box-sizing:border-box;border:1px solid #ccc;border-radius:8px;font-size:16px}
+input,select,button{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:8px;font-size:16px}
 button{background:#1d4ed8;color:white;border:0;font-weight:bold}
-h3{color:#1d4ed8}
+h3{color:#1d4ed8;margin-top:5px}
 .stat{font-size:22px;font-weight:bold;color:green}
-table{width:100%;background:white;border-collapse:collapse}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.box{background:#eff6ff;padding:12px;border-radius:10px;text-align:center}
+.box small{display:block;color:#444}
+table{width:100%;border-collapse:collapse;font-size:14px}
 td,th{padding:8px;border:1px solid #ddd;text-align:left}
+.tablewrap{overflow-x:auto}
+.danger{background:#dc2626}
+.green{background:#15803d}
+hr{border:0;border-top:1px solid #ddd;margin:15px 0}
 </style>
 </head>
 <body>
+
 <header>
 <h2>📱 போதும் பொண்ணு ட்ரீம் மொபைல்</h2>
 <p>PP DREAM BUSINESS</p>
+<p>கடை கணக்கு மேலாண்மை</p>
 </header>
+
+<div class="card">
+<h3>💰 லாபக் கணக்கு</h3>
+<div class="grid">
+<div class="box"><small>Service Profit</small><b class="stat" id="serviceProfit">₹0</b></div>
+<div class="box"><small>Buy & Sell Profit</small><b class="stat" id="salesProfit">₹0</b></div>
+<div class="box"><small>இன்றைய லாபம்</small><b class="stat" id="todayProfit">₹0</b></div>
+<div class="box"><small>இந்த மாத லாபம்</small><b class="stat" id="monthProfit">₹0</b></div>
+</div>
+<hr>
+<p>மொத்த லாபம்: <span class="stat" id="totalProfit">₹0</span></p>
+</div>
+
+<div class="card">
+<h3>🛠️ Mobile Service பதிவு</h3>
+<input id="phoneModel" placeholder="Mobile Model (எ.கா: Vivo Y20)">
+<input id="serviceWork" placeholder="செய்த வேலை (Display / Charging)">
+<input id="customerAmount" type="number" min="0" placeholder="Customer கொடுத்த தொகை ₹">
+<input id="serviceExpense" type="number" min="0" placeholder="Parts / செலவு தொகை ₹">
+<button onclick="addService()">Service பதிவு செய்</button>
+</div>
 
 <div class="card">
 <h3>📦 புதிய பொருள் சேர்க்க</h3>
 <input id="name" placeholder="பொருளின் பெயர்">
-<input id="buy" type="number" placeholder="வாங்கிய விலை">
-<input id="sell" type="number" placeholder="விற்பனை விலை">
-<input id="qty" type="number" placeholder="இருப்பு எண்ணிக்கை">
+<input id="buy" type="number" min="0" placeholder="வாங்கிய விலை ₹">
+<input id="sell" type="number" min="0" placeholder="விற்பனை விலை ₹">
+<input id="qty" type="number" min="1" placeholder="இருப்பு எண்ணிக்கை">
 <button onclick="addProduct()">பொருள் சேர்</button>
 </div>
 
 <div class="card">
 <h3>🛒 விற்பனை பதிவு</h3>
-<input id="saleName" placeholder="விற்ற பொருளின் பெயர்">
-<input id="saleQty" type="number" placeholder="விற்ற எண்ணிக்கை">
+<select id="saleProduct">
+<option value="">பொருளை தேர்வு செய்</option>
+</select>
+<input id="saleQty" type="number" min="1" placeholder="விற்ற எண்ணிக்கை">
 <button onclick="addSale()">விற்பனை சேர்</button>
 </div>
 
 <div class="card">
-<h3>💰 கணக்கு விவரம்</h3>
-<p>இன்றைய லாபம்: <span class="stat" id="today">₹0</span></p>
-<p>மொத்த லாபம்: <span class="stat" id="total">₹0</span></p>
-</div>
-
-<div class="card">
 <h3>📋 பொருட்கள் இருப்பு</h3>
-<div id="products"></div>
+<div class="tablewrap" id="products"></div>
 </div>
 
 <div class="card">
-<h3>📒 விற்பனை வரலாறு</h3>
-<div id="history"></div>
+<h3>🛠️ Service History</h3>
+<div class="tablewrap" id="serviceHistory"></div>
+</div>
+
+<div class="card">
+<h3>📒 Sales History</h3>
+<div class="tablewrap" id="history"></div>
 </div>
 
 <div class="card">
@@ -62,7 +94,25 @@ td,th{padding:8px;border:1px solid #ddd;text-align:left}
 </div>
 
 <script>
-let data=JSON.parse(localStorage.getItem("ppdream_business_v1")||'{"products":[],"sales":[]}');
+// பழைய பதிவுகளை பாதுகாத்து புதிய Service கணக்கை சேர்க்கும்
+let data;
+try{
+data=JSON.parse(localStorage.getItem("ppdream_business_v1")||'{"products":[],"sales":[]}');
+}catch(e){
+data={products:[],sales:[]};
+}
+if(!Array.isArray(data.products))data.products=[];
+if(!Array.isArray(data.sales))data.sales=[];
+if(!Array.isArray(data.services))data.services=[];
+
+function todayDate(){
+let d=new Date();
+return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+function money(n){
+return "₹"+Number(n||0).toFixed(2);
+}
 
 function save(){
 localStorage.setItem("ppdream_business_v1",JSON.stringify(data));
@@ -74,63 +124,214 @@ let name=document.getElementById("name").value.trim();
 let buy=Number(document.getElementById("buy").value);
 let sell=Number(document.getElementById("sell").value);
 let qty=Number(document.getElementById("qty").value);
-if(!name||buy<=0||sell<=0||qty<=0){alert("விவரங்களை சரியாக நிரப்பவும்");return;}
+
+if(!name||buy<0||sell<=0||qty<=0||
+document.getElementById("buy").value===""||
+document.getElementById("sell").value===""){
+alert("விவரங்களை சரியாக நிரப்பவும்");
+return;
+}
+
+let old=data.products.find(p=>p.name.toLowerCase()===name.toLowerCase());
+
+if(old){
+if(old.buy!==buy||old.sell!==sell){
+alert("இந்த பொருள் ஏற்கனவே உள்ளது. அதே விலை விவரங்களைப் பயன்படுத்தவும்.");
+return;
+}
+old.qty+=qty;
+}else{
 data.products.push({name,buy,sell,qty});
-document.getElementById("name").value="";
-document.getElementById("buy").value="";
-document.getElementById("sell").value="";
-document.getElementById("qty").value="";
+}
+
+["name","buy","sell","qty"].forEach(id=>document.getElementById(id).value="");
 save();
+alert("பொருள் வெற்றிகரமாக சேர்க்கப்பட்டது");
 }
 
 function addSale(){
-let name=document.getElementById("saleName").value.trim();
+let index=Number(document.getElementById("saleProduct").value);
 let qty=Number(document.getElementById("saleQty").value);
-let p=data.products.find(x=>x.name.toLowerCase()===name.toLowerCase());
-if(!p||qty<=0){alert("பொருளின் பெயர் அல்லது எண்ணிக்கை சரிபார்க்கவும்");return;}
-if(p.qty<qty){alert("போதுமான இருப்பு இல்லை");return;}
+
+if(document.getElementById("saleProduct").value===""||qty<=0){
+alert("பொருள் மற்றும் எண்ணிக்கையை தேர்வு செய்யவும்");
+return;
+}
+
+let p=data.products[index];
+if(!p||p.qty<qty){
+alert("போதுமான இருப்பு இல்லை");
+return;
+}
+
 p.qty-=qty;
-let profit=(p.sell-p.buy)*qty;
-data.sales.push({name,qty,profit,date:new Date().toLocaleDateString("en-CA")});
-document.getElementById("saleName").value="";
+let profit=(Number(p.sell)-Number(p.buy))*qty;
+
+data.sales.push({
+name:p.name,
+qty:qty,
+profit:profit,
+date:todayDate()
+});
+
 document.getElementById("saleQty").value="";
 save();
+alert("விற்பனை பதிவு செய்யப்பட்டது");
+}
+
+function addService(){
+let model=document.getElementById("phoneModel").value.trim();
+let work=document.getElementById("serviceWork").value.trim();
+let amount=document.getElementById("customerAmount").value;
+let expense=document.getElementById("serviceExpense").value;
+
+if(!model||!work||amount===""||expense===""){
+alert("அனைத்து விவரங்களையும் நிரப்பவும்");
+return;
+}
+
+amount=Number(amount);
+expense=Number(expense);
+
+if(amount<0||expense<0||amount<expense){
+alert("தொகையை சரிபார்க்கவும். செலவு வருமானத்தை விட அதிகமாக இருக்கக்கூடாது.");
+return;
+}
+
+data.services.push({
+model:model,
+work:work,
+amount:amount,
+expense:expense,
+profit:amount-expense,
+date:todayDate()
+});
+
+["phoneModel","serviceWork","customerAmount","serviceExpense"]
+.forEach(id=>document.getElementById(id).value="");
+
+save();
+alert("Service பதிவு வெற்றிகரமாக சேர்க்கப்பட்டது");
 }
 
 function render(){
-document.getElementById("products").innerHTML=data.products.length?
-"<table><tr><th>பொருள்</th><th>விலை</th><th>இருப்பு</th></tr>"+
-data.products.map(p=>`<tr><td>${p.name}</td><td>₹${p.sell}</td><td>${p.qty}</td></tr>`).join("")+"</table>":"இன்னும் பொருட்கள் இல்லை";
-let total=data.sales.reduce((s,x)=>s+x.profit,0);
-let today=new Date().toLocaleDateString("en-CA");
-let daily=data.sales.filter(x=>x.date===today).reduce((s,x)=>s+x.profit,0);
-document.getElementById("total").innerText="₹"+total;
-document.getElementById("today").innerText="₹"+daily;
-document.getElementById("history").innerHTML=data.sales.slice().reverse().map(x=>`<p>${x.name} - ${x.qty} - லாபம் ₹${x.profit} (${x.date})</p>`).join("")||"விற்பனை இல்லை";
+let select=document.getElementById("saleProduct");
+select.innerHTML='<option value="">பொருளை தேர்வு செய்</option>';
+
+data.products.forEach((p,i)=>{
+let option=document.createElement("option");
+option.value=i;
+option.textContent=p.name+" (இருப்பு: "+p.qty+")";
+select.appendChild(option);
+});
+
+let productDiv=document.getElementById("products");
+
+if(data.products.length){
+let table=document.createElement("table");
+table.innerHTML="<tr><th>பொருள்</th><th>விலை</th><th>இருப்பு</th></tr>";
+data.products.forEach(p=>{
+let tr=document.createElement("tr");
+[p.name,money(p.sell),p.qty].forEach(v=>{
+let td=document.createElement("td");
+td.textContent=v;
+tr.appendChild(td);
+});
+table.appendChild(tr);
+});
+productDiv.replaceChildren(table);
+}else{
+productDiv.textContent="பொருட்கள் எதுவும் இல்லை";
+}
+
+let serviceTable=document.createElement("table");
+serviceTable.innerHTML="<tr><th>தேதி</th><th>Model / வேலை</th><th>வருமானம்</th><th>செலவு</th><th>லாபம்</th></tr>";
+
+data.services.slice().reverse().forEach(s=>{
+let tr=document.createElement("tr");
+[s.date,s.model+" / "+s.work,money(s.amount),money(s.expense),money(s.profit)].forEach(v=>{
+let td=document.createElement("td");
+td.textContent=v;
+tr.appendChild(td);
+});
+serviceTable.appendChild(tr);
+});
+
+let sh=document.getElementById("serviceHistory");
+sh.replaceChildren();
+if(data.services.length)sh.appendChild(serviceTable);
+else sh.textContent="Service பதிவு இல்லை";
+
+let salesTable=document.createElement("table");
+salesTable.innerHTML="<tr><th>தேதி</th><th>பொருள்</th><th>எண்ணிக்கை</th><th>லாபம்</th></tr>";
+
+data.sales.slice().reverse().forEach(s=>{
+let tr=document.createElement("tr");
+[s.date,s.name,s.qty,money(s.profit)].forEach(v=>{
+let td=document.createElement("td");
+td.textContent=v;
+tr.appendChild(td);
+});
+salesTable.appendChild(tr);
+});
+
+let hist=document.getElementById("history");
+hist.replaceChildren();
+if(data.sales.length)hist.appendChild(salesTable);
+else hist.textContent="விற்பனை பதிவு இல்லை";
+
+let serviceTotal=data.services.reduce((a,s)=>a+Number(s.profit),0);
+let salesTotal=data.sales.reduce((a,s)=>a+Number(s.profit),0);
+
+let today=todayDate();
+let month=today.slice(0,7);
+
+let dailyService=data.services.filter(s=>s.date===today).reduce((a,s)=>a+Number(s.profit),0);
+let dailySales=data.sales.filter(s=>s.date===today).reduce((a,s)=>a+Number(s.profit),0);
+
+let monthlyService=data.services.filter(s=>s.date.startsWith(month)).reduce((a,s)=>a+Number(s.profit),0);
+let monthlySales=data.sales.filter(s=>s.date.startsWith(month)).reduce((a,s)=>a+Number(s.profit),0);
+
+document.getElementById("serviceProfit").textContent=money(serviceTotal);
+document.getElementById("salesProfit").textContent=money(salesTotal);
+document.getElementById("todayProfit").textContent=money(dailyService+dailySales);
+document.getElementById("monthProfit").textContent=money(monthlyService+monthlySales);
+document.getElementById("totalProfit").textContent=money(serviceTotal+salesTotal);
 }
 
 function backup(){
 let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+let url=URL.createObjectURL(blob);
 let a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
+a.href=url;
 a.download="PP_Dream_Backup.json";
 a.click();
-URL.revokeObjectURL(a.href);
+setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 function restore(){
 let f=document.getElementById("restoreFile").files[0];
-if(!f){alert("Backup கோப்பை தேர்வு செய்யவும்");return;}
+if(!f){
+alert("Backup கோப்பை தேர்வு செய்யவும்");
+return;
+}
 let r=new FileReader();
 r.onload=()=>{
 try{
 let d=JSON.parse(r.result);
 if(!Array.isArray(d.products)||!Array.isArray(d.sales))throw Error();
-data=d;save();alert("Backup வெற்றிகரமாக Restore ஆனது");
-}catch(e){alert("சரியான Backup கோப்பு இல்லை");}
+if(!Array.isArray(d.services))d.services=[];
+if(!confirm("தற்போதைய கணக்குகளை Backup கணக்குகளால் மாற்ற வேண்டுமா?"))return;
+data=d;
+save();
+alert("Backup வெற்றிகரமாக Restore ஆனது");
+}catch(e){
+alert("சரியான Backup கோப்பு இல்லை");
+}
 };
 r.readAsText(f);
 }
+
 render();
 </script>
 </body>

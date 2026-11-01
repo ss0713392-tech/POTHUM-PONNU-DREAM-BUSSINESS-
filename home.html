@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PP DREAM BUSINESS</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f1f4f9;margin:0;padding:15px;color:#222}
+header{background:#172554;color:white;padding:20px;border-radius:12px;text-align:center}
+.card{background:white;padding:15px;margin:12px 0;border-radius:12px;box-shadow:0 2px 8px #ddd}
+input,button{width:100%;padding:12px;margin:6px 0;box-sizing:border-box;border:1px solid #ccc;border-radius:8px;font-size:16px}
+button{background:#1d4ed8;color:white;border:0;font-weight:bold}
+h3{color:#1d4ed8}
+.stat{font-size:22px;font-weight:bold;color:green}
+table{width:100%;background:white;border-collapse:collapse}
+td,th{padding:8px;border:1px solid #ddd;text-align:left}
+</style>
+</head>
+<body>
+<header>
+<h2>📱 போதும் பொண்ணு ட்ரீம் மொபைல்</h2>
+<p>PP DREAM BUSINESS</p>
+</header>
+
+<div class="card">
+<h3>📦 புதிய பொருள் சேர்க்க</h3>
+<input id="name" placeholder="பொருளின் பெயர்">
+<input id="buy" type="number" placeholder="வாங்கிய விலை">
+<input id="sell" type="number" placeholder="விற்பனை விலை">
+<input id="qty" type="number" placeholder="இருப்பு எண்ணிக்கை">
+<button onclick="addProduct()">பொருள் சேர்</button>
+</div>
+
+<div class="card">
+<h3>🛒 விற்பனை பதிவு</h3>
+<input id="saleName" placeholder="விற்ற பொருளின் பெயர்">
+<input id="saleQty" type="number" placeholder="விற்ற எண்ணிக்கை">
+<button onclick="addSale()">விற்பனை சேர்</button>
+</div>
+
+<div class="card">
+<h3>💰 கணக்கு விவரம்</h3>
+<p>இன்றைய லாபம்: <span class="stat" id="today">₹0</span></p>
+<p>மொத்த லாபம்: <span class="stat" id="total">₹0</span></p>
+</div>
+
+<div class="card">
+<h3>📋 பொருட்கள் இருப்பு</h3>
+<div id="products"></div>
+</div>
+
+<div class="card">
+<h3>📒 விற்பனை வரலாறு</h3>
+<div id="history"></div>
+</div>
+
+<div class="card">
+<h3>💾 Backup / Restore</h3>
+<button onclick="backup()">Backup பதிவிறக்கு</button>
+<input type="file" id="restoreFile" accept=".json">
+<button onclick="restore()">Backup Restore செய்</button>
+</div>
+
+<script>
+let data=JSON.parse(localStorage.getItem("ppdream_business_v1")||'{"products":[],"sales":[]}');
+
+function save(){
+localStorage.setItem("ppdream_business_v1",JSON.stringify(data));
+render();
+}
+
+function addProduct(){
+let name=document.getElementById("name").value.trim();
+let buy=Number(document.getElementById("buy").value);
+let sell=Number(document.getElementById("sell").value);
+let qty=Number(document.getElementById("qty").value);
+if(!name||buy<=0||sell<=0||qty<=0){alert("விவரங்களை சரியாக நிரப்பவும்");return;}
+data.products.push({name,buy,sell,qty});
+document.getElementById("name").value="";
+document.getElementById("buy").value="";
+document.getElementById("sell").value="";
+document.getElementById("qty").value="";
+save();
+}
+
+function addSale(){
+let name=document.getElementById("saleName").value.trim();
+let qty=Number(document.getElementById("saleQty").value);
+let p=data.products.find(x=>x.name.toLowerCase()===name.toLowerCase());
+if(!p||qty<=0){alert("பொருளின் பெயர் அல்லது எண்ணிக்கை சரிபார்க்கவும்");return;}
+if(p.qty<qty){alert("போதுமான இருப்பு இல்லை");return;}
+p.qty-=qty;
+let profit=(p.sell-p.buy)*qty;
+data.sales.push({name,qty,profit,date:new Date().toLocaleDateString("en-CA")});
+document.getElementById("saleName").value="";
+document.getElementById("saleQty").value="";
+save();
+}
+
+function render(){
+document.getElementById("products").innerHTML=data.products.length?
+"<table><tr><th>பொருள்</th><th>விலை</th><th>இருப்பு</th></tr>"+
+data.products.map(p=>`<tr><td>${p.name}</td><td>₹${p.sell}</td><td>${p.qty}</td></tr>`).join("")+"</table>":"இன்னும் பொருட்கள் இல்லை";
+let total=data.sales.reduce((s,x)=>s+x.profit,0);
+let today=new Date().toLocaleDateString("en-CA");
+let daily=data.sales.filter(x=>x.date===today).reduce((s,x)=>s+x.profit,0);
+document.getElementById("total").innerText="₹"+total;
+document.getElementById("today").innerText="₹"+daily;
+document.getElementById("history").innerHTML=data.sales.slice().reverse().map(x=>`<p>${x.name} - ${x.qty} - லாபம் ₹${x.profit} (${x.date})</p>`).join("")||"விற்பனை இல்லை";
+}
+
+function backup(){
+let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="PP_Dream_Backup.json";
+a.click();
+URL.revokeObjectURL(a.href);
+}
+
+function restore(){
+let f=document.getElementById("restoreFile").files[0];
+if(!f){alert("Backup கோப்பை தேர்வு செய்யவும்");return;}
+let r=new FileReader();
+r.onload=()=>{
+try{
+let d=JSON.parse(r.result);
+if(!Array.isArray(d.products)||!Array.isArray(d.sales))throw Error();
+data=d;save();alert("Backup வெற்றிகரமாக Restore ஆனது");
+}catch(e){alert("சரியான Backup கோப்பு இல்லை");}
+};
+r.readAsText(f);
+}
+render();
+</script>
+</body>
+</html>

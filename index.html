@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#132b4f">
+<title>PP DREAM BUSINESS</title>
+<style>
+:root{--navy:#132b4f;--blue:#245da8;--bg:#f3f6fb;--green:#16834b;--red:#b42318}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,"Noto Sans Tamil",sans-serif;background:var(--bg);color:#172033}
+header{background:linear-gradient(135deg,#132b4f,#2865a9);color:white;padding:22px 16px}
+header h1{font-size:21px;margin:0 0 5px}
+header p{margin:0;font-size:13px}
+main{max-width:760px;margin:auto;padding:14px}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.card,.panel{background:white;border-radius:14px;padding:14px;box-shadow:0 2px 10px #102b4d0d}
+.card small{color:#65738a}
+.card strong{display:block;font-size:21px;margin-top:5px}
+nav{display:flex;gap:7px;overflow:auto;margin:12px 0}
+nav button{white-space:nowrap;border:0;border-radius:20px;padding:10px 14px;background:#e1e9f5;color:#17375e;font-weight:650}
+nav button.active{background:var(--navy);color:white}
+.panel{margin-bottom:13px}
+h2{font-size:17px;margin:0 0 12px}
+label{display:block;font-size:13px;color:#526078;margin:9px 0 4px}
+input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:16px;background:white}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button.primary{width:100%;border:0;border-radius:10px;background:var(--blue);color:white;padding:12px;font-size:15px;font-weight:700;margin-top:12px}
+button.secondary{border:1px solid #b9c7d9;background:#f7f9fc;color:#17375e;border-radius:9px;padding:10px;font-weight:650}
+.item{border-top:1px solid #edf0f5;padding:11px 0;display:flex;justify-content:space-between;gap:10px}
+.muted{font-size:12px;color:#68778d}
+.profit{color:var(--green);font-weight:750}
+.hidden{display:none!important}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button{flex:1}
+.notice{font-size:12px;color:#66758a;line-height:1.5}
+.empty{color:#7b8798;text-align:center;padding:18px}
+@media(min-width:600px){.cards{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header>
+<h1>📱 PP DREAM BUSINESS</h1>
+<p>POTHUM PONNU DREAM MOBILE</p>
+<p>கடை வரவு · செலவு · லாபக் கணக்கு</p>
+</header>
+<main>
+<section class="cards">
+<div class="card"><small>இன்றைய லாபம்</small><strong id="todayProfit">₹0</strong></div>
+<div class="card"><small>இந்த மாத லாபம்</small><strong id="monthProfit">₹0</strong></div>
+<div class="card"><small>பொருட்கள் எண்ணிக்கை</small><strong id="stockCount">0</strong></div>
+<div class="card"><small>மொத்த விற்பனை</small><strong id="totalSales">₹0</strong></div>
+</section>
+<nav>
+<button class="active" data-tab="products">பொருட்கள்</button>
+<button data-tab="sale">விற்பனை</button>
+<button data-tab="reports">லாபக் கணக்கு</button>
+<button data-tab="backup">Backup</button>
+</nav>
+<section id="products" class="tab panel">
+<h2>புதிய பொருள் சேர்க்க</h2>
+<label>பொருள் பெயர்</label>
+<input id="pname" placeholder="உதா: Charger">
+<div class="row">
+<div><label>வாங்கிய விலை (₹)</label><input id="pcost" type="number" min="0"></div>
+<div><label>விற்பனை விலை (₹)</label><input id="pprice" type="number" min="0"></div>
+</div>
+<label>இருப்பு எண்ணிக்கை</label>
+<input id="pqty" type="number" min="0" value="1">
+<button class="primary" onclick="addProduct()">பொருளை சேமி</button>
+<h2 style="margin-top:20px">பொருள் பட்டியல்</h2>
+<div id="productList"></div>
+</section>
+<section id="sale" class="tab panel hidden">
+<h2>பொருள் விற்பனை பதிவு</h2>
+<label>பொருள் தேர்வு</label>
+<select id="saleProduct" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:16px"></select>
+<div class="row">
+<div><label>விற்ற எண்ணிக்கை</label><input id="saleQty" type="number" min="1" value="1"></div>
+<div><label>ஒரு பொருள் விற்ற விலை (₹)</label><input id="salePrice" type="number" min="0"></div>
+</div>
+<button class="primary" onclick="makeSale()">விற்பனையை சேமி · லாபம் கணக்கிடு</button>
+<p class="notice">வாங்கிய விலையிலிருந்து விற்பனை விலை கழித்து லாபம் கணக்கிடப்படும்.</p>
+</section>
+<section id="reports" class="tab panel hidden">
+<h2>விற்பனை வரலாறு</h2>
+<div id="salesList"></div>
+</section>
+<section id="backup" class="tab panel hidden">
+<h2>தரவு Backup / Restore</h2>
+<p class="notice">Backup கோப்பை Download செய்து Google Drive-ல் சேமிக்கலாம். Restore செய்ய JSON கோப்பைத் தேர்வு செய்யவும்.</p>
+<div class="actions">
+<button class="secondary" onclick="backup()">Backup Download</button>
+<button class="secondary" onclick="document.getElementById('restoreFile').click()">Backup Restore</button>
+</div>
+<input id="restoreFile" class="hidden" type="file" accept="application/json" onchange="restore(event)">
+<p class="notice">குறிப்பு: தரவு இந்த மொபைலிலேயே சேமிக்கப்படும். Google Drive தானியங்கி Sync இல்லை.</p>
+</section>
+</main>
+<script>
+const KEY='ppdream_business_v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"products":[],"sales":[]}');
+const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
+function addProduct(){
+let name=document.getElementById('pname').value.trim();
+let cost=+document.getElementById('pcost').value;
+let price=+document.getElementById('pprice').value;
+let qty=+document.getElementById('pqty').value;
+if(!name||pcost.value===''||pprice.value===''||qty<0){alert('எல்லா விவரங்களையும் சரியாக நிரப்பவும்.');return}
+db.products.push({id:Date.now(),name,cost,price,qty});
+pname.value='';pcost.value='';pprice.value='';pqty.value=1;
+save();alert('பொருள் சேமிக்கப்பட்டது!');
+}
+function makeSale(){
+let id=+saleProduct.value;
+let p=db.products.find(x=>x.id===id);
+let qty=+saleQty.value,price=+salePrice.value;
+if(!p){alert
